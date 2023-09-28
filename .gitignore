@@ -74,24 +74,24 @@ Plugins/*/Intermediate/*
 DerivedDataCache/*
 
 # Perforce
-.p4config.txt
-.p4ignore
+*.p4config.*
+*.p4ignore.*
 
 # VCS
-.idea/*
+*/.idea/*
 .vs/*
 *.sln
 *.sln.DotSettings
 *.sln.DotSettings.user
 
 # Game Assets and Generated Files
-Binaries/*
-Config/*
-Content/*
-DerivedDataCache/*
-Intermediate/*
-Platforms/*
-Plugins/*
-Saved/*
-.vsconfig
+*/Binaries/*
+*/Config/*
+*/Content/*
+*/DerivedDataCache/*
+*/Intermediate/*
+*/Platforms/*
+*/Plugins/*
+*/Saved/*
+*.vsconfig
 *.uproject
