@@ -72,3 +72,26 @@ Plugins/*/Intermediate/*
 
 # Cache files for the editor to use
 DerivedDataCache/*
+
+# Perforce
+.p4config.txt
+.p4ignore
+
+# VCS
+.idea/*
+.vs/*
+*.sln
+*.sln.DotSettings
+*.sln.DotSettings.user
+
+# Game Assets and Generated Files
+Binaries/*
+Config/*
+Content/*
+DerivedDataCache/*
+Intermediate/*
+Platforms/*
+Plugins/*
+Saved/*
+.vsconfig
+*.uproject
