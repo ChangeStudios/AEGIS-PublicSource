@@ -36,7 +36,7 @@ DECLARE_DELEGATE(FJumpedDelegateSignature);
  *
  * This class should be derived from and not used directly.
  */
-UCLASS(Abstract, meta = (ShortTooltip = "A hero is a playable character."))
+UCLASS()
 class HEROESPROTOTYPEBASE_API AHeroBase : public AHeroesCharacterBase, public IAbilitySystemInterface
 {
 	GENERATED_BODY()

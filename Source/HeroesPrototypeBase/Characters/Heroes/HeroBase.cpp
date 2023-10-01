@@ -180,7 +180,7 @@ void AHeroBase::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 		{
 			for (const UPlayerMappableInputConfig* InputConfig : DefaultInputConfigs)
 			{
-				// TODO: Add a condition to check which input configs to set up using platform-specific gameplay tags.
+				// TODO: Add an "if" statement to check which input configs to set up
 
 				// Get every pair of input mapping contexts and their corresponding priorities in this input config.
 				const TMap<TObjectPtr<UInputMappingContext>, int32>& MappingContextPairs = InputConfig->GetMappingContexts();

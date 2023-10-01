@@ -5,14 +5,19 @@
 
 #include "AbilitySystemComponent.h"
 #include "Abilities/GameplayAbility.h"
+#include "Curves/CurveVector.h"
+#include "Inventory/ItemTraits/WeaponItemTrait.h"
+#include "Inventory/ItemTraits/WeaponStaticDataAsset.h"
 
-void AHeroesGATA_Trace::Configure(AActor* InSourceActor, FCollisionProfileName InTraceProfile, bool bInIgnoreBlockingHits, bool bInShouldProduceTargetDataOnServer, float InMaxRange)
+void AHeroesGATA_Trace::Configure(AActor* InSourceActor, FCollisionProfileName InTraceProfile, bool bInIgnoreBlockingHits, bool bInShouldProduceTargetDataOnServer, float InMaxRange, UWeaponItemTrait* InWeaponItemTrait)
 {
 	SourceActor = InSourceActor;
 	TraceProfile = InTraceProfile;
 	bIgnoreBlockingHits = bInIgnoreBlockingHits;
 	bShouldProduceTargetDataOnServer = bInShouldProduceTargetDataOnServer;
 	MaxRange = InMaxRange;
+	WeaponItemTrait = InWeaponItemTrait;
+	bDestroyOnConfirmation = false;
 }
 
 void AHeroesGATA_Trace::CancelTargeting()
@@ -59,7 +64,7 @@ TArray<FHitResult> AHeroesGATA_Trace::PerformTrace(AActor* InSourceActor)
 	Params.AddIgnoredActors(ActorsToIgnore);
 	Params.bIgnoreBlocks = bIgnoreBlockingHits;
 
-	check(PrimaryPC)
+	check(PrimaryPC);
 
 	FVector ViewStart;
 	FRotator ViewRot;
@@ -68,8 +73,21 @@ TArray<FHitResult> AHeroesGATA_Trace::PerformTrace(AActor* InSourceActor)
 	TArray<FHitResult> ReturnHitResults;
 
 	const FVector TraceStart = ViewStart;
-	const FVector ViewDir = ViewRot.Vector();
-	const FVector TraceEnd = ViewStart + (ViewDir * MaxRange);
+
+	// Randomize the view rotation depending on accuracy
+	FVector ViewDir = ViewRot.Vector();
+	ensure(WeaponItemTrait);
+	UWeaponStaticDataAsset* WeaponData = WeaponItemTrait->StaticData;
+	float CurrentHeat = WeaponItemTrait->CurrentWeaponHeat;
+	FVector Spread = WeaponData->SpreadCurve->GetVectorValue(CurrentHeat);
+	float SpreadX = FMath::DegreesToRadians(Spread.X);
+	float SpreadY = FMath::DegreesToRadians(Spread.Y);
+	const int32 RandomSeed = FMath::Rand();
+	FRandomStream WeaponRandomStream(RandomSeed);
+	const FVector ViewDirWithSpread = WeaponRandomStream.VRandCone(ViewDir, SpreadX, SpreadY);
+	
+	const FVector TraceEnd = ViewStart + (ViewDirWithSpread * MaxRange);
+	CurrentTraceEnd = TraceEnd;
 
 	TArray<FHitResult> HitResults;
 	InSourceActor->GetWorld()->LineTraceMultiByProfile(HitResults, TraceStart, TraceEnd, TraceProfile.Name, Params);

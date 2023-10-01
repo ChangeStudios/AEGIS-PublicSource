@@ -40,11 +40,12 @@ public:
 	UPROPERTY(EditDefaultsOnly)
 	TObjectPtr<UCurveVector> RecoilCurve;
 
-	/** The curve that represents this weapon's spread as a result of its current heat. */
+	/** The curve that represents this weapon's spread as a result of its current heat. The X and Y curves define the
+	 * horizontal and vertical spread in degrees. */
 	UPROPERTY(EditDefaultsOnly)
 	TObjectPtr<UCurveVector> SpreadCurve;
 
-	/** When aiming down sights, this weapon's spread is multiplied by this value. */
+	/** When aiming down sights, this weapon's spread is multiplied by this value. Lower numbers increase accuracy. */
 	UPROPERTY(EditDefaultsOnly)
 	float AimingSpreadMultiplier;
 

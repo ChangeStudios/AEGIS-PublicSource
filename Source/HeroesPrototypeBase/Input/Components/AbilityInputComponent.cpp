@@ -33,7 +33,9 @@ void UAbilityInputComponent::Input_AbilityInputTagPressed(FGameplayTag InputTag)
 	{
 		if (UHeroesAbilitySystemComponent* HeroesASC = UHeroesAbilitySystemGlobals::GetHeroesAbilitySystemComponentFromActor(Pawn))
 		{
-			for (const FGameplayAbilitySpec& AbilitySpec : HeroesASC->GetActivatableAbilities())
+			// Cache the array in case it changes while iterating.
+			const TArray<FGameplayAbilitySpec> ActivatableAbilities = HeroesASC->GetActivatableAbilities();
+			for (const FGameplayAbilitySpec& AbilitySpec : ActivatableAbilities)
 			{
 				// The input tag with which to activate an ability is added to DynamicAbilityTags when an ability set is given to an ability system.
 				if (AbilitySpec.Ability && AbilitySpec.DynamicAbilityTags.HasTagExact(InputTag))

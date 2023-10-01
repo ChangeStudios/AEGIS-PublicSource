@@ -78,18 +78,18 @@ DerivedDataCache/*
 *.p4ignore.*
 
 # VCS
-*/.idea/*
+.idea/*
 .vs/*
 *.sln
 *.sln.DotSettings
 *.sln.DotSettings.user
 
 # Game Assets and Generated Files
-*/Binaries/*
-*/Config/*
-*/Content/*
-*/DerivedDataCache/*
-*/Intermediate/*
+Binaries/*
+Config/*
+Content/*
+DerivedDataCache/*
+Intermediate/*
 */Platforms/*
 */Plugins/*
 */Saved/*

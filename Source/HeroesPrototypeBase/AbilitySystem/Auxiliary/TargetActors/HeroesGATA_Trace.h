@@ -6,6 +6,8 @@
 #include "Abilities/GameplayAbilityTargetActor.h"
 #include "HeroesGATA_Trace.generated.h"
 
+class UWeaponItemTrait;
+
 /**
  * A reusable and re-configurable trace target actor. Subclass this with custom trace shapes.
  *
@@ -26,7 +28,8 @@ public:
 		UPARAM(DisplayName = "Trace Profile") FCollisionProfileName InTraceProfile,
 		UPARAM(DisplayName = "Ignore Blocking Hits") bool bInIgnoreBlockingHits = false,
 		UPARAM(DisplayName = "Should Produce Target Data on Server") bool bInShouldProduceTargetDataOnServer = false,
-		UPARAM(DisplayName = "Max Range") float InMaxRange = 999999.0f
+		UPARAM(DisplayName = "Max Range") float InMaxRange = 999999.0f,
+		UPARAM(DisplayName = "Weapon Item Trait") UWeaponItemTrait* InWeaponItemTrait = nullptr
 	);
 
 public:
@@ -36,8 +39,13 @@ public:
 	virtual void CancelTargeting() override;
 
 protected:
-	
+
 	virtual TArray<FHitResult> PerformTrace(AActor* InSourceActor);
+
+public:
+
+	UPROPERTY(BlueprintReadOnly)
+	FVector CurrentTraceEnd = FVector::ZeroVector;
 
 protected:
 
@@ -46,4 +54,7 @@ protected:
 	bool bIgnoreBlockingHits;
 	bool bShouldProduceTargetDataOnServer;
 	float MaxRange;
+
+	UPROPERTY()
+	UWeaponItemTrait* WeaponItemTrait;
 };
