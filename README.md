@@ -1,6 +1,14 @@
 # AEGIS Public Source Code
 Publically available source code of the upcoming multiplayer hero shooter, AEGIS. All game assets are excluded from this repository. AEGIS uses Perforce and Microsoft Azure DevOps for version control.
 
+This source code demonstrates practical and optimized implementations of the following systems and features:
+* Platform-Independent Enhanced Input System
+* Gameplay Abilities System
+* Data-Driven Animation (weapon sway, arm sway, etc.)
+* Multiplayer Inventory System 
+* Procedural Weapon Recoil, Recoil Recovery, and Dynamic Weapon Accuracy
+* Predictive Gameplay Ability Targeting & Target Actors
+
 The source code in this repository is copyright 2024 Change Studios, LLC.
 
 # Documentation
@@ -12,8 +20,8 @@ AEGIS's source code's in-line documentation is highly detailed. However, given t
 
 * [Attributes System (Part of the Gameplay Abilities System)](https://docs.google.com/document/d/1IDJvnW53IzzD8vg-SktYWbKc5AXeoO5QLk4M10t9krk/edit?usp=sharing)
 
-* [First-Person Animation System](https://docs.google.com/document/d/1UV3R6dHHZ-cgM9uuNYQA9AEsfXvDAo_9y0Q19TcmRZ4/edit?usp=sharing)
+* [First-Person Data-Driven Animation System](https://docs.google.com/document/d/1UV3R6dHHZ-cgM9uuNYQA9AEsfXvDAo_9y0Q19TcmRZ4/edit?usp=sharing)
 
-* [Inventory System](https://docs.google.com/document/d/1fnCxjhPZ1-xgic89i3CLhVhz7a1V3F_KhbTavQG-TlQ/edit?usp=sharing)
+* [Multiplayer Inventory System](https://docs.google.com/document/d/1fnCxjhPZ1-xgic89i3CLhVhz7a1V3F_KhbTavQG-TlQ/edit?usp=sharing)
 
 * [Weapon System](https://docs.google.com/document/d/1UPuFGa1AzkVqBJm7f0dcJqDYkiCXFL74vcffnDUElQI/edit?usp=sharing)
