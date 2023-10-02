@@ -9,8 +9,6 @@ This source code demonstrates practical and optimized implementations of the fol
 * Procedural Weapon Recoil, Recoil Recovery, and Dynamic Weapon Accuracy
 * Predictive Gameplay Ability Targeting & Target Actors
 
-The source code in this repository is copyright 2024 Change Studios, LLC.
-
 # Documentation
 AEGIS's source code's in-line documentation is highly detailed. However, given the complex and intertwining nature of many gameplay systems, we've included several high-level documents detailing the implementation of various systems. These documents were originally written during development to aid in the design and implementation of each system. Links to these documents are listed below.
 
@@ -25,3 +23,10 @@ AEGIS's source code's in-line documentation is highly detailed. However, given t
 * [Multiplayer Inventory System](https://docs.google.com/document/d/1fnCxjhPZ1-xgic89i3CLhVhz7a1V3F_KhbTavQG-TlQ/edit?usp=sharing)
 
 * [Weapon System](https://docs.google.com/document/d/1UPuFGa1AzkVqBJm7f0dcJqDYkiCXFL74vcffnDUElQI/edit?usp=sharing)
+
+<br/>
+
+<h6>Copyright Notice:
+
+\
+All contents of this repository are copyright 2024 Change Studios, LLC. All contents of the project currently known as "AEGIS" or "Project Heroes Zeta," including game assets and source code, are copyright 2024 Change Studios, LLC. The works of Change Studios, LLC., including the project known as "AEGIS" or "Project Heroes Zeta," are protected IPs.</h6>
