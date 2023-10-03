@@ -70,7 +70,12 @@ public:
 	 * the weapon's recoil and accuracy. */
 	float TimeBeforeHeadCooldown;
 
-	/** The rate at which */
+	/** How quickly this weapon's heat scales from 0.0 to 1.0. Measured in heat-per-shot. */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	float HeatRate;
+
+	/** The amount of time it takes for this weapon's heat to cool to 0.0 from 1.0 when it stops firing. */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	float HeatCooldownRate;
 
 

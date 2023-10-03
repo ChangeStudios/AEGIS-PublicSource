@@ -37,7 +37,7 @@ public:
 	/** Determines recoil curve position and accuracy over time. Increases with each shot, decreases over time when
 	 * not firing. */
 	UPROPERTY(BlueprintReadWrite)
-	float CurrentWeaponHeat = 0.5;
+	float CurrentWeaponHeat = 0.0;
 
 	/** The weapon heat at the time of the last shot. */
 	UPROPERTY(BlueprintReadWrite)

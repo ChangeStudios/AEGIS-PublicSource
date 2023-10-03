@@ -4,6 +4,7 @@
 #include "AbilitySystem/Auxiliary/TargetActors/HeroesGATA_Trace.h"
 
 #include "AbilitySystemComponent.h"
+#include "HeroesLogChannels.h"
 #include "Abilities/GameplayAbility.h"
 #include "Curves/CurveVector.h"
 #include "Inventory/ItemTraits/WeaponItemTrait.h"
@@ -85,6 +86,8 @@ TArray<FHitResult> AHeroesGATA_Trace::PerformTrace(AActor* InSourceActor)
 	const int32 RandomSeed = FMath::Rand();
 	FRandomStream WeaponRandomStream(RandomSeed);
 	const FVector ViewDirWithSpread = WeaponRandomStream.VRandCone(ViewDir, SpreadX, SpreadY);
+
+	UE_LOG(LogHeroes, Warning, TEXT("CurrentHeat: %f, Spread: %f, %f"), CurrentHeat, SpreadX, SpreadY);
 	
 	const FVector TraceEnd = ViewStart + (ViewDirWithSpread * MaxRange);
 	CurrentTraceEnd = TraceEnd;
