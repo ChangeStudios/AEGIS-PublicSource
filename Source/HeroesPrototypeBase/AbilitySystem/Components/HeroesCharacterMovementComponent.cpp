@@ -14,6 +14,7 @@
 #include "HeroesGameFramework/HeroesAssetManager.h"
 #include "Kismet/KismetMathLibrary.h"
 
+UE_DEFINE_GAMEPLAY_TAG_COMMENT(TAG_Ability_Identifier_Action_Generic_Jump, "Ability.Identifier.Action.Generic.Jump", "The default jump ability.");
 UE_DEFINE_GAMEPLAY_TAG_COMMENT(TAG_SetByCaller_Movement, "SetByCaller.Movement", "Data tags used to set the magnitude of movement-related modifiers and executions in gameplay effects.");
 UE_DEFINE_GAMEPLAY_TAG_COMMENT(TAG_SetByCaller_Movement_Acceleration, "SetByCaller.Movement.Acceleration", "Data tag to set the magnitude of a Set by Caller acceleration modifier.");
 
@@ -300,6 +301,10 @@ float UHeroesCharacterMovementComponent::CalculateLandingHardness(float LandingS
 
 void UHeroesCharacterMovementComponent::OnLanded(const FHitResult& Hit)
 {
+	// Cancel any "jump" ability when we land.
+	const FGameplayTagContainer JumpTag = FGameplayTagContainer(TAG_Ability_Identifier_Action_Generic_Jump);
+	HeroesASC->CancelAbilities(&JumpTag);
+
 	// Don't do anything when landing if hard landing is disabled.
 	if (!bHardLandingEnabled)
 	{

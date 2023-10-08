@@ -10,6 +10,7 @@
 #include "HeroesCharacterMovementComponent.generated.h"
 
 /** Native gameplay tags relevant to this class. */
+UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_Ability_Identifier_Action_Generic_Jump);
 UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_SetByCaller_Movement);
 UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_SetByCaller_Movement_Acceleration);
 
