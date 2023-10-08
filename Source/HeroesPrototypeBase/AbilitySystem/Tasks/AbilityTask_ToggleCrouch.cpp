@@ -3,7 +3,6 @@
 
 #include "AbilitySystem/Tasks/AbilityTask_ToggleCrouch.h"
 
-#include "Components/TimelineComponent.h"
 #include "Net/UnrealNetwork.h"
 
 UAbilityTask_ToggleCrouch* UAbilityTask_ToggleCrouch::ToggleCrouch(UGameplayAbility* OwningAbility, FName TaskInstanceName, bool bStartCrouch)
@@ -27,7 +26,7 @@ void UAbilityTask_ToggleCrouch::TickTask(float DeltaTime)
 	Super::TickTask(DeltaTime);
 
 	// Tick the crouching timeline.
-	CrouchTimeline->TickTimeline(DeltaTime);
+	CrouchTimeline.TickTimeline(DeltaTime);
 }
 
 void UAbilityTask_ToggleCrouch::GetLifetimeReplicatedProps(TArray< FLifetimeProperty > & OutLifetimeProps) const

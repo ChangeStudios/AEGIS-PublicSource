@@ -9,7 +9,8 @@
 #include "Animation/HeroesAnimationTypes.h"
 #include "HeroFirstPersonAnimInstance.generated.h"
 
-	class UItemCharacterAnimationData;
+class UAbilitySystemComponent;
+class UItemCharacterAnimationData;
 class AHeroBase;
 class UCharacterAnimationData;
 class UFloatSpringInterpDataAsset;
@@ -99,6 +100,10 @@ protected:
 	/** This animation instance's owning pawn, cached for convenience. */
 	UPROPERTY(BlueprintReadOnly, Category = "Heroes|Animation")
 	TObjectPtr<AHeroBase> OwningHero;
+
+	/** This animation instance's owning hero's ACS, if they have one. */
+	UPROPERTY(BlueprintReadOnly, Category = "Heroes|Animation")
+	TObjectPtr<UAbilitySystemComponent> OwningACS;
 
 	/**
 	 * Performs a float spring interpolation using the given values.
@@ -226,4 +231,15 @@ protected:
 	/** Linearly scales the effect of the landing camera shake. */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Landing")
 	float LandingCameraShakeScale = 1.0f;
+
+
+
+	// States.
+
+protected:
+
+	/** Whether the player is currently aiming down the sights of their weapon. Determined by the AimedDownSights
+	 * gameplay tag. */
+	UPROPERTY(BlueprintReadOnly, Category = "States")
+	bool bAimingDownSights = false;
 };

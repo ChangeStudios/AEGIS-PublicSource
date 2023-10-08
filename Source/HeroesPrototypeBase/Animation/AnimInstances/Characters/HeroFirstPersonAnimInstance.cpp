@@ -3,6 +3,7 @@
 
 #include "Animation/AnimInstances/Characters/HeroFirstPersonAnimInstance.h"
 
+#include "AbilitySystemComponent.h"
 #include "AbilitySystem/Components/HeroesCharacterMovementComponent.h"
 #include "Animation/CharacterAnimationData/ItemCharacterAnimationData.h"
 #include "Animation/FloatSpringInterpDataAsset.h"
@@ -11,6 +12,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/PlayerController.h"
 #include "Kismet/GameplayStatics.h"
+#include "AbilitySystem/HeroesNativeGameplayTags.h"
 #include "Net/UnrealNetwork.h"
 
 void UHeroFirstPersonAnimInstance::NativeInitializeAnimation()
@@ -25,8 +27,10 @@ void UHeroFirstPersonAnimInstance::NativeBeginPlay()
 {
 	Super::NativeBeginPlay();
 
-	// Cache the owning pawn for convenience.
+	// Cache the owning pawn and its ACS for convenience.
 	OwningHero = TryGetPawnOwner() ? Cast<AHeroBase>(TryGetPawnOwner()) : nullptr;
+
+	OwningACS = OwningHero && OwningHero->GetAbilitySystemComponent() ? OwningHero->GetAbilitySystemComponent() : nullptr;
 
 	// Initialize the current animation data with the default animation data.
 	AnimationData = DefaultAnimationData;
@@ -44,6 +48,9 @@ void UHeroFirstPersonAnimInstance::NativeBeginPlay()
 void UHeroFirstPersonAnimInstance::NativeThreadSafeUpdateAnimation(float DeltaSeconds)
 {
 	Super::NativeThreadSafeUpdateAnimation(DeltaSeconds);
+
+	// Update the current state of ADS.
+	bAimingDownSights = OwningACS ? OwningACS->HasMatchingGameplayTag(FHeroesNativeGameplayTags::Get().State_AimedDownSights) : false;
 
 	UpdateAimOffset();
 

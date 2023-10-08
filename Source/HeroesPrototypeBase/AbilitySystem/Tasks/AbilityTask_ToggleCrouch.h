@@ -4,9 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "Abilities/Tasks/AbilityTask.h"
+#include "Components/TimelineComponent.h"
 #include "AbilityTask_ToggleCrouch.generated.h"
-
-struct FTimeline;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCrouchDelegate, bool,
                                             bStartCrouch
@@ -49,7 +48,7 @@ protected:
 	UPROPERTY(Replicated)
 	bool bStartCrouch;
 
-	TObjectPtr<FTimeline> CrouchTimeline;
+	FTimeline CrouchTimeline;
 
 	
 };
