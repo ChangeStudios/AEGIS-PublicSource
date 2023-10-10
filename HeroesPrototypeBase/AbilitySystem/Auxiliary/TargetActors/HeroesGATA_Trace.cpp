@@ -4,8 +4,10 @@
 #include "AbilitySystem/Auxiliary/TargetActors/HeroesGATA_Trace.h"
 
 #include "AbilitySystemComponent.h"
+#include "AbilitySystemGlobals.h"
 #include "HeroesLogChannels.h"
 #include "Abilities/GameplayAbility.h"
+#include "AbilitySystem/HeroesNativeGameplayTags.h"
 #include "Curves/CurveVector.h"
 #include "Inventory/ItemTraits/WeaponItemTrait.h"
 #include "Inventory/ItemTraits/WeaponStaticDataAsset.h"
@@ -55,6 +57,8 @@ void AHeroesGATA_Trace::ConfirmTargetingAndContinue()
 
 TArray<FHitResult> AHeroesGATA_Trace::PerformTrace(AActor* InSourceActor)
 {
+	UAbilitySystemComponent* ASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(SourceActor);
+
 	bool bTraceComplex = false;
 	TArray<AActor*> ActorsToIgnore;
 
@@ -81,6 +85,7 @@ TArray<FHitResult> AHeroesGATA_Trace::PerformTrace(AActor* InSourceActor)
 	UWeaponStaticDataAsset* WeaponData = WeaponItemTrait->StaticData;
 	float CurrentHeat = WeaponItemTrait->CurrentWeaponHeat;
 	FVector Spread = WeaponData->SpreadCurve->GetVectorValue(CurrentHeat);
+	Spread *= ASC && ASC->HasMatchingGameplayTag(FHeroesNativeGameplayTags::Get().State_AimedDownSights) ? WeaponData->AimingSpreadMultiplier : 1.0f;
 	float SpreadX = FMath::DegreesToRadians(Spread.X);
 	float SpreadY = FMath::DegreesToRadians(Spread.Y);
 	const int32 RandomSeed = FMath::Rand();
