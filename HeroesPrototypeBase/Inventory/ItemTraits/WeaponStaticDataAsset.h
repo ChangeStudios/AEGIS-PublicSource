@@ -78,6 +78,11 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	float HeatCooldownRate;
 
+	/** The maximum size of this weapon's magazine. Used when a weapon is spawned and when a weapon is reloaded. 0 for
+	 * weapons that do not use shot-based ammunition (e.g. swords). */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	int MagazineSize;
+
 
 
 	// VFX.
