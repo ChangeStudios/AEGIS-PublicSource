@@ -18,9 +18,6 @@ class HEROESPROTOTYPEBASE_API UCharacterAnimationData : public UDataAsset
 
 public:
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "First-Person|Locomotion", DisplayName = "Idle (First-Person)")
-	UAnimSequenceBase* IdleAnim_FPP = nullptr;
-
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "First-Person|Locomotion", DisplayName = "Walking (First-Person)")
 	UBlendSpace* WalkingBS_FPP = nullptr;
 

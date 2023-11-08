@@ -18,20 +18,36 @@ class HEROESPROTOTYPEBASE_API UWeaponCharacterAnimationData : public UItemCharac
 
 public:
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "First-Person|Weapon", DisplayName = "Start Aim-Down-Sights (First-Person)")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "First-Person|Weapon", DisplayName = "Idle, Aiming (First-Person)")
+	UAnimSequenceBase* AimedIdleAnim_FPP = nullptr;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "First-Person|Locomotion", DisplayName = "Walking, Aiming (First-Person)")
+	UBlendSpace* WalkingAimedBS_FPP = nullptr;
+
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "First-Person|Jump", DisplayName = "Jump, Aiming (First-Person)")
+	UAnimSequenceBase* JumpAimedAnim_FPP = nullptr;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "First-Person|Jump", DisplayName = "Falling, Aiming (First-Person)")
+	UAnimSequenceBase* FallingAimedAnim_FPP = nullptr;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "First-Person|Jump", DisplayName = "Landing, Aiming (First-Person)")
+	UAnimSequenceBase* LandingAimedAnim_FPP = nullptr;
+
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "First-Person|Weapon", DisplayName = "Start Aiming (First-Person)")
 	UAnimMontage* StartAimAnim_FPP = nullptr;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "First-Person|Weapon", DisplayName = "End Aim-Down-Sights (First-Person)")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "First-Person|Weapon", DisplayName = "End Aiming (First-Person)")
 	UAnimMontage* EndAimAnim_FPP = nullptr;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "First-Person|Weapon", DisplayName = "Aimed Idle (First-Person)")
-	UAnimSequenceBase* AimedIdleAnim_FPP = nullptr;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "First-Person|Weapon", DisplayName = "Hip-Fire (First-Person)")
 	UAnimMontage* HipFireAnim_FPP = nullptr;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "First-Person|Weapon", DisplayName = "Aimed Fire (First-Person)")
 	UAnimMontage* AimedFireAnim_FPP = nullptr;
+
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "First-Person|Weapon", DisplayName = "Reload from Empty Magazine (First-Person)")
 	UAnimMontage* EmptyReloadAnim_FPP = nullptr;
