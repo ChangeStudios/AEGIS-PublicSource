@@ -8,6 +8,8 @@
 #include "PrototypeAnimInstance.generated.h"
 
 class AHeroBase;
+class UItemCharacterAnimationData;
+class UFloatSpringInterpDataAsset;
 
 USTRUCT(BlueprintType)
 struct FSpringInterpData
@@ -47,6 +49,24 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Utils")
 	FMinimalViewInfo PlayerCameraView;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Animation Data")
+	TObjectPtr<UItemCharacterAnimationData> ItemAnimationData;
+
+private:
+
+	/**
+	 * Performs a float spring interpolation using the given values.
+	 *
+	 * @param SpringCurrent			The current spring interpolation value.
+	 * @param SpringTarget			The target spring interpolation value.
+	 * @param SpringState			Data for the calculating spring model. Create a unique variable for each spring
+	 *								model.
+	 * @param SpringData			Data used for adjusting the spring model. Adjust this data to change the behavior
+	 *								of the spring.
+	 * @return						The resulting spring interpolation value.
+	 */
+	void UpdateFloatSpringInterp(float FInterpCurrent, float FInterpTarget, float SpringCurrent, FFloatSpringState& SpringState, UFloatSpringInterpDataAsset* SpringData, bool bUseDeltaScalar, float &OutCurrentFInterp, float &OutCurrentSpring);
 
 
 // Update functions.

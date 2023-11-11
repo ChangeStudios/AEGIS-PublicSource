@@ -3,6 +3,9 @@
 
 #include "Animation/AnimInstances/Characters/PrototypeAnimInstance.h"
 
+#include "HeroesLogChannels.h"
+#include "Animation/FloatSpringInterpDataAsset.h"
+#include "Animation/CharacterAnimationData/ItemCharacterAnimationData.h"
 #include "Camera/CameraComponent.h"
 #include "Characters/Heroes/HeroBase.h"
 
@@ -12,6 +15,32 @@ void UPrototypeAnimInstance::NativeBeginPlay()
 
 	APawn* Pawn = TryGetPawnOwner();
 	OwningHero = IsValid(Pawn) ? Cast<AHeroBase>(Pawn) : nullptr;
+}
+
+void UPrototypeAnimInstance::UpdateFloatSpringInterp(float FInterpCurrent, float FInterpTarget, float SpringCurrent, FFloatSpringState& SpringState, UFloatSpringInterpDataAsset* SpringData, bool bUseDeltaScalar, float& OutCurrentFInterp, float& OutCurrentSpring)
+{
+	const float DeltaSeconds = GetDeltaSeconds() > 0.0f ? GetDeltaSeconds() : 1.0f;
+
+	if (DeltaSeconds > 0.1f)
+	{
+		OutCurrentFInterp = FInterpCurrent;
+		OutCurrentSpring = SpringCurrent;
+		return;
+	}
+
+	const float LocalCurrentFInterp = 0.0f;
+	const float LocalFInterpSpeed = SpringData->InterpSpeed;
+	const float LocalStiffness = SpringData->Stiffness;
+	const float LocalDampingFactor = SpringData->CriticalDampingFactor;
+	const float LocalMass = SpringData->Mass;
+
+	const float LocalDeltaScalar = (1.0f / 60.0f) / DeltaSeconds;
+
+	const float LocalScaledSpringTarget = bUseDeltaScalar ? FInterpTarget * FMath::Pow(LocalDeltaScalar, 0.75f) : FInterpTarget;
+	const float LocalScaledDeltaTime = DeltaSeconds / FMath::Pow(LocalDeltaScalar, -0.1f);
+
+	OutCurrentSpring = UKismetMathLibrary::FloatSpringInterp(SpringCurrent, LocalScaledSpringTarget, SpringState, LocalStiffness, LocalDampingFactor, LocalScaledDeltaTime, LocalMass);
+	OutCurrentFInterp = LocalCurrentFInterp;
 }
 
 void UPrototypeAnimInstance::UpdateCameraPitch()
@@ -135,7 +164,30 @@ void UPrototypeAnimInstance::UpdateLagLeanSway()
 		return;
 	}
 	
-	WeaponSwayLocationOffsetInterpLookUp = FMath::GetMappedRangeValueClamped(FVector2D(-75.0f, 75.0f), FVector2D(1.0f, -1.0f), CameraPitch);
+	NormalizedCameraPitch = FMath::GetMappedRangeValueClamped(FVector2D(-75.0f, 75.0f), FVector2D(1.0f, -1.0f), CameraPitch);
+
+	// Might need to unrotate this.
+	const FVector CurrentMovement = OwningHero->Internal_GetPendingMovementInputVector();
+
+	// Might need to change how this is retrieved in order to get the rotation change this frame.
+	const APlayerController* PC = OwningHero->GetController<APlayerController>();
+	const FRotator CurrentRotation = IsValid(PC) ? OwningHero->GetController<APlayerController>()->RotationInput : FRotator::ZeroRotator;
+	
+	MoveForwardBackward = CurrentMovement.X;
+	MoveRightLeft = CurrentMovement.Y;
+	LookUpDown = CurrentRotation.Pitch;
+	LookRightLeft = CurrentRotation.Yaw;
+
+	UE_LOG(LogHeroes, Warning, TEXT("Rotation: %s"), *CurrentRotation.ToString());
+
+	// Hook in aim scaling rates here.
+	LookUpDownRate = 1.0f;
+	LookRightLeftRate = 1.0f;
+
+	UpdateFloatSpringInterp(CurrentFInterpLookRightLeft, (LookRightLeft + LookRightLeftRate), CurrentSpringLookRightLeft, LookRightLeftSpringState, ItemAnimationData->SpringInterpDataAimRightLeft, true, CurrentFInterpLookRightLeft, CurrentSpringLookRightLeft);
+	UpdateFloatSpringInterp(CurrentFInterpLookUpDown, (LookUpDown + LookUpDownRate), CurrentSpringLookUpDown, LookUpDownSpringState, ItemAnimationData->SpringInterpDataAimUpDown, true, CurrentFInterpLookUpDown, CurrentSpringLookUpDown);
+	UpdateFloatSpringInterp(CurrentFInterpMoveForwardBackward, MoveForwardBackward, CurrentSpringMoveForwardBackward, MoveForwardBackwardSpringState, ItemAnimationData->SpringInterpDataMoveForwardBackward, false, CurrentFInterpMoveForwardBackward, CurrentSpringMoveForwardBackward);
+	UpdateFloatSpringInterp(CurrentFInterpMoveRightLeft, MoveRightLeft, CurrentSpringMoveRightLeft, MoveRightLeftSpringState, ItemAnimationData->SpringInterpDataMoveRightLeft, false, CurrentFInterpMoveRightLeft, CurrentSpringMoveRightLeft);
 }
 
 void UPrototypeAnimInstance::UpdateFall()
