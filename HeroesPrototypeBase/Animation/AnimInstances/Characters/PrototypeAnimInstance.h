@@ -3,10 +3,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GameplayTagContainer.h"
 #include "Animation/AnimInstance.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "PrototypeAnimInstance.generated.h"
 
+class UHeroesAbilitySystemComponent;
 class AHeroBase;
 class UItemCharacterAnimationData;
 class UFloatSpringInterpDataAsset;
@@ -40,6 +42,8 @@ class HEROESPROTOTYPEBASE_API UPrototypeAnimInstance : public UAnimInstance
 public:
 
 	virtual void NativeBeginPlay() override;
+
+	virtual void NativeUpdateAnimation(float DeltaSeconds) override;
 	
 // Utils
 public:
@@ -48,10 +52,19 @@ public:
 	AHeroBase* OwningHero;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Utils")
+	UHeroesAbilitySystemComponent* OwningACS = nullptr;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Utils")
 	FMinimalViewInfo PlayerCameraView;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Animation Data")
 	TObjectPtr<UItemCharacterAnimationData> ItemAnimationData;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Tags")
+	FGameplayTag CrouchingTag;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Tags")
+	FGameplayTag AimingTag;
 
 private:
 
@@ -203,8 +216,13 @@ public:
 	FSpringInterpData MoveRightLeftInterpData;
 
 
-	
-	void UpdateFall();
+
+	virtual void OnOwningPawnLanded(const FHitResult& Hit);
+
+	void UpdateFall(const FHitResult& Hit);
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Player Movement|Falling")
+	float LandingSpeed;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Player Movement|Falling")
 	float FallDistance;
@@ -325,6 +343,15 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Fire Jitter Rotation")
 	FRotator CurrentFireJitterRotation;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Fire Jitter Rotation")
+	FVectorSpringState FireJitterSpringState;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Fire Pullback")
+	FSpringInterpData FireJitterData;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Fire Pullback")
+	bool bResettingAim;
+
 
 
 	void UpdateFirePullback();
@@ -339,7 +366,7 @@ public:
 	FFloatSpringState PullbackSpringState;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Fire Pullback")
-	FSpringInterpData FirePullbackData;
+	UFloatSpringInterpDataAsset* FirePullbackData;
 
 
 
@@ -349,7 +376,7 @@ public:
 	float RapidFireAlpha;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Rapid Fire")
-	float rapidFireAlphaInterpSpeed;
+	float RapidFireAlphaInterpSpeed;
 
 
 

@@ -4,10 +4,17 @@
 #include "Animation/AnimInstances/Characters/PrototypeAnimInstance.h"
 
 #include "HeroesLogChannels.h"
+#include "AbilitySystem/HeroesNativeGameplayTags.h"
+#include "AbilitySystem/Components/HeroesAbilitySystemComponent.h"
+#include "AbilitySystem/Components/HeroesCharacterMovementComponent.h"
 #include "Animation/FloatSpringInterpDataAsset.h"
 #include "Animation/CharacterAnimationData/ItemCharacterAnimationData.h"
 #include "Camera/CameraComponent.h"
 #include "Characters/Heroes/HeroBase.h"
+#include "PhysicsEngine/PhysicsSettings.h"
+#include "Runtime/Engine/Classes/Kismet/KismetMathLibrary.h"
+
+#define AddRotators(A, B) UKismetMathLibrary::ComposeRotators(A, B);
 
 void UPrototypeAnimInstance::NativeBeginPlay()
 {
@@ -15,6 +22,47 @@ void UPrototypeAnimInstance::NativeBeginPlay()
 
 	APawn* Pawn = TryGetPawnOwner();
 	OwningHero = IsValid(Pawn) ? Cast<AHeroBase>(Pawn) : nullptr;
+
+	if (IsValid(OwningHero))
+	{
+		OwningHero->LandedDelegate.AddDynamic(this, &UPrototypeAnimInstance::OnOwningPawnLanded);
+
+		OwningACS = OwningHero->GetHeroesAbilitySystemComponent();
+	}
+
+	CrouchingTag = FHeroesNativeGameplayTags::Get().State_Movement_Crouching;
+	AimingTag = FHeroesNativeGameplayTags::Get().State_AimedDownSights;
+}
+
+void UPrototypeAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
+{
+	Super::NativeUpdateAnimation(DeltaSeconds);
+
+	UpdateCameraPitch();
+
+	UpdateVelocity();
+
+	UpdateHandIK();
+
+	UpdateCamRotation();
+
+	UpdateLagLeanSway();
+
+	UpdateIKRot();
+
+	UpdateIKRot_ADS();
+
+	UpdateIKLoc();
+
+	UpdateIKLoc_ADS();
+
+	UpdateFireJitter();
+
+	UpdateFirePullback();
+
+	UpdateRapidFire();
+
+	UpdateTagStates();
 }
 
 void UPrototypeAnimInstance::UpdateFloatSpringInterp(float FInterpCurrent, float FInterpTarget, float SpringCurrent, FFloatSpringState& SpringState, UFloatSpringInterpDataAsset* SpringData, bool bUseDeltaScalar, float& OutCurrentFInterp, float& OutCurrentSpring)
@@ -190,40 +238,148 @@ void UPrototypeAnimInstance::UpdateLagLeanSway()
 	UpdateFloatSpringInterp(CurrentFInterpMoveRightLeft, MoveRightLeft, CurrentSpringMoveRightLeft, MoveRightLeftSpringState, ItemAnimationData->SpringInterpDataMoveRightLeft, false, CurrentFInterpMoveRightLeft, CurrentSpringMoveRightLeft);
 }
 
-void UPrototypeAnimInstance::UpdateFall()
+void UPrototypeAnimInstance::OnOwningPawnLanded(const FHitResult& Hit)
 {
+	UpdateFall(Hit);
+}
+
+void UPrototypeAnimInstance::UpdateFall(const FHitResult& Hit)
+{
+	if (IsValid(OwningHero) && OwningHero->GetHeroesCharacterMovementComponent())
+	{
+		const UHeroesCharacterMovementComponent* MovementComponent = OwningHero->GetHeroesCharacterMovementComponent();
+
+		LandingSpeed = FMath::Abs(MovementComponent->GetLastUpdateVelocity().Z);
+		const float GravityForce = UPhysicsSettings::Get()->DefaultGravityZ * MovementComponent->GetGravityScale();
+		const float FallingTime = LandingSpeed / GravityForce;
+		FallDistance = 0.5f * GravityForce * FMath::Pow(FallingTime, 2.0f);
+		NormalizedFallDistance = FMath::GetMappedRangeValueClamped(
+			FVector2D(ItemAnimationData->MinFallDistance, ItemAnimationData->MaxFallDistance),
+			FVector2D(0.0f, 1.0f),
+			FallDistance);
+	}
 }
 
 void UPrototypeAnimInstance::UpdateIKRot()
 {
+	const float Roll = CurrentSpringLookUpDown * SwayLookUpDownScale;
+	const float Pitch = CurrentSpringMoveRightLeft * LeanMoveRightLeftScale;
+	const float Yaw = CurrentSpringLookRightLeft * SwayLookRightLeftScale;
+	const FRotator SwayRot = FRotator(Pitch, Yaw, Roll);
+	
+	const FRotator SwayAndFireRot = AddRotators(SwayRot, CurrentFireJitterRotation);
+	const FRotator FinalIKRot = SwayAndFireRot * FinalHipRotationScale;
+
+	HandIKRotation = AddRotators(FinalIKRot, HandIKCorrection.Rotator());
 }
 
 void UPrototypeAnimInstance::UpdateIKRot_ADS()
 {
+	const float Roll = CurrentSpringLookUpDown * ADSSwayLookUpDownScale;
+	const float Pitch = CurrentSpringMoveRightLeft * ADSLeanMoveRightLeftScale;
+	const float Yaw = CurrentSpringLookRightLeft * ADSSwayLookRightLeftScale;
+	const FRotator SwayRot = FRotator(Pitch, Yaw, Roll);
+	
+	const FRotator SwayAndFireRot = AddRotators(SwayRot, CurrentFireJitterRotation);
+	const FRotator FinalIKRot = SwayAndFireRot * ADSFinalRotationScale;
+
+	ADSHandIKRotation = AddRotators(FinalIKRot, HandIKCorrection.Rotator());
 }
 
 void UPrototypeAnimInstance::UpdateIKLoc()
 {
+	const float A = CurrentSpringMoveRightLeft * LagMoveRightLeftScale;
+	const float B = CurrentSpringLookRightLeft * LagLookRightLeftScale;
+	const float X = A + B;
+
+	const float C = CurrentSpringMoveForwardBackward * LagMoveForwardBackwardScale;
+	const float Y = C + CurrentFirePullback;
+
+	const float Z = WeaponSwayLocationOffsetInterpLookUp * WeaponSwayLocationOffsetLookUpScale;
+
+	const FVector FinalLoc = FVector(X, Y, Z) * FinalHipLocationScale;
+	const FVector CorrectedFinalLoc = FinalLoc + HandIKCorrection.GetLocation();
+
+	const FVector Scale = HandIKCorrection.GetScale3D();
+	const FRotator ScaleAsRot = FRotator(Scale.Y, Scale.Z, Scale.X);
+	
+	HandIKLocation = ScaleAsRot.RotateVector(CorrectedFinalLoc);
 }
 
 void UPrototypeAnimInstance::UpdateIKLoc_ADS()
 {
+	const float A = CurrentSpringMoveForwardBackward * ADSLagMoveForwardBackwardScale;
+	const float B = CurrentFirePullback * bAiming ? 0.75f : 0.3f;
+	const float Y = A + B;
+
+	const float C = CurrentSpringMoveRightLeft * ADSLagMoveRightLeftScale;
+	const float D = CurrentSpringLookRightLeft * ADSLagLookRightLeftScale;
+	const float Z = (C + D) * -1.0f;
+
+	const FVector FinalLoc = FVector(0.0f, Y, Z) * ADSFinalLocationScale;
+
+	ADSHandIKLocation = FinalLoc + HandADSIK.GetLocation();
 }
 
 void UPrototypeAnimInstance::UpdateFireJitter()
 {
+	const float DeltaTime = GetDeltaSeconds();
+	
+	if (DeltaTime > 0.1f)
+	{
+		return;
+	}
+
+	CurrentRInterpFireJitterRotation = FMath::RInterpTo(CurrentRInterpFireJitterRotation, TargetRInterpFireJitterRotation, DeltaTime, 15.0f);
+	CurrentFireJitterTime = FMath::FInterpTo(CurrentFireJitterTime, 1.0f, DeltaTime, ItemAnimationData->FireInterpSpeed);
+
+	const FVector CurrentVector = FVector(CurrentFireJitterRotation.Roll, CurrentFireJitterRotation.Pitch, CurrentFireJitterRotation.Yaw);
+	const FRotator TargetVectorAsRot = CurrentRInterpFireJitterRotation * ItemAnimationData->FireJitterInterpCurve->GetFloatValue(CurrentFireJitterTime);
+	const FVector TargetVector = FVector(TargetVectorAsRot.Roll, TargetVectorAsRot.Pitch, TargetVectorAsRot.Yaw);
+	const FVector InterpVector = UKismetMathLibrary::VectorSpringInterp
+	(
+		CurrentVector,
+		TargetVector,
+		FireJitterSpringState,
+		FireJitterData.Stiffness,
+		FireJitterData.CriticalDampingFactor,
+		DeltaTime
+	);
+
+	const FRotator InterpAsRot = FRotator(InterpVector.X, InterpVector.Y, InterpVector.Z);
+	CurrentFireJitterRotation = bAiming ? InterpAsRot * 0.8f : InterpAsRot;
 }
 
 void UPrototypeAnimInstance::UpdateFirePullback()
 {
+	if (!bResettingAim)
+	{
+		return;
+	}
+
+	float CurrentFirePullbackUnclamped = 1.0f;
+
+	UpdateFloatSpringInterp(CurrentFInterpFirePullback, 0.0f, CurrentFirePullback, PullbackSpringState, FirePullbackData, true, CurrentFInterpFirePullback, CurrentFirePullbackUnclamped);
+	CurrentFirePullback = FMath::Clamp(CurrentFirePullbackUnclamped, -6.0f, 1.0f);
 }
 
 void UPrototypeAnimInstance::UpdateRapidFire()
 {
+	if (RapidFireAlpha > 0.0f)
+	{
+		RapidFireAlpha = FMath::FInterpConstantTo(RapidFireAlpha, 0.0f, GetDeltaSeconds(), RapidFireAlphaInterpSpeed);
+	}
 }
 
 void UPrototypeAnimInstance::UpdateTagStates()
 {
+	if (!IsValid(OwningHero) || !IsValid(OwningACS))
+	{
+		return;
+	}
+
+	bCrouched = OwningACS->HasMatchingGameplayTag(CrouchingTag);
+	bAiming = OwningACS->HasMatchingGameplayTag(AimingTag);
 }
 
 void UPrototypeAnimInstance::OnWeaponFire()

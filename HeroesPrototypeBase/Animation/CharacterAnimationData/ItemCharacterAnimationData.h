@@ -43,6 +43,23 @@ public:
 	FAdditiveAnimationMultipliers AdditiveAnimationMultipliers;
 
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "First-Person|Item|Falling")
+	float MinFallDistance = 400.0f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "First-Person|Item|Falling")
+	float MaxFallDistance = 1200.0f;
+
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "First-Person|Item|Firing")
+	float FireInterpSpeed = 15.0f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "First-Person|Item|Firing")
+	float FireJitterBaseStrengthX = 15.0f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "First-Person|Item|Firing")
+	UCurveFloat* FireJitterInterpCurve = nullptr;
+
+
 
 	// Third-Person.
 
