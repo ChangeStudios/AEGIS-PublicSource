@@ -12,6 +12,11 @@ class UHeroesAbilitySystemComponent;
 class AHeroBase;
 class UItemCharacterAnimationData;
 class UFloatSpringInterpDataAsset;
+class AHeroesGamePlayerStateBase;
+class UInventoryComponent;
+class UInventoryItemInstance;
+class UInventoryItemDefinition;
+class UEquippableItemTrait;
 
 USTRUCT(BlueprintType)
 struct FSpringInterpData
@@ -41,6 +46,8 @@ class HEROESPROTOTYPEBASE_API UPrototypeAnimInstance : public UAnimInstance
 
 public:
 
+	virtual void NativeInitializeAnimation() override;
+
 	virtual void NativeBeginPlay() override;
 
 	virtual void NativeUpdateAnimation(float DeltaSeconds) override;
@@ -55,10 +62,25 @@ public:
 	UHeroesAbilitySystemComponent* OwningACS = nullptr;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Utils")
+	AHeroesGamePlayerStateBase* OwningPS = nullptr;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Utils")
+	UInventoryComponent* OwningInventory = nullptr;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Utils")
+	UInventoryItemInstance* EquippedItem = nullptr;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Utils")
+	UInventoryItemDefinition* EquippedItemDefinition = nullptr;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Utils")
+	UEquippableItemTrait* EquippedItemEquippableTrait = nullptr;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Utils")
 	FMinimalViewInfo PlayerCameraView;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Animation Data")
-	TObjectPtr<UItemCharacterAnimationData> ItemAnimationData;
+	TObjectPtr<UItemCharacterAnimationData> ItemAnimationData = nullptr;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Tags")
 	FGameplayTag CrouchingTag;
@@ -85,6 +107,47 @@ private:
 // Update functions.
 public:
 
+	void UpdateVelocity();
+
+	// Velocity vector length.
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Player Movement|Velocity")
+	float SignedSpeed;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Player Movement|Velocity")
+	float ForwardBackwardMovementSpeed;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Player Movement|Velocity")
+	float RightLeftMovementSpeed;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Player Movement|Velocity")
+	float UpDownMovementSpeed;
+
+
+
+	void UpdateLookSpeed();
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Player Movement|Looking")
+	FRotator PawnRotation;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Player Movement|Looking")
+	FRotator PreviousLookRotation;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Player Movement|Looking")
+	FRotator CurrentLookRotation;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Player Movement|Looking")
+	float LookUpDownSpeed;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Player Movement|Looking")
+	float LookRightLeftSpeed;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Player Movement|Looking")
+	float MaxLookSpeed = 500.0f;
+
+	
+
+
+
 	void UpdateCameraPitch();
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Player Movement|Camera Pitch")
@@ -95,18 +158,6 @@ public:
 	float NormalizedCameraPitch;
 
 
-
-	void UpdateVelocity();
-
-	// Velocity vector length.
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Player Movement|Velocity")
-	float Speed;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Player Movement|Velocity")
-	float ForwardBackwardSpeed;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Player Movement|Velocity")
-	float RightLeftSpeed;
 
 
 
@@ -137,6 +188,12 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Player Movement|Camera Rotation")
 	float YawDelta;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Player Movement|Camera Rotation")
+	FRotator PreviousRot;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Player Movement|Camera Rotation")
+	FRotator CurrentRot;
 
 
 

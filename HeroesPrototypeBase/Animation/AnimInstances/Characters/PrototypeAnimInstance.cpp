@@ -11,23 +11,41 @@
 #include "Animation/CharacterAnimationData/ItemCharacterAnimationData.h"
 #include "Camera/CameraComponent.h"
 #include "Characters/Heroes/HeroBase.h"
+#include "Inventory/InventoryComponent.h"
+#include "Inventory/InventoryItemDefinition.h"
+#include "Inventory/InventoryItemInstance.h"
+#include "Inventory/ItemTraits/EquippableItemTrait.h"
 #include "PhysicsEngine/PhysicsSettings.h"
+#include "Player/PlayerStates/Game/HeroesGamePlayerStateBase.h"
 #include "Runtime/Engine/Classes/Kismet/KismetMathLibrary.h"
 
 #define AddRotators(A, B) UKismetMathLibrary::ComposeRotators(A, B);
+
+void UPrototypeAnimInstance::NativeInitializeAnimation()
+{
+	Super::NativeInitializeAnimation();
+}
 
 void UPrototypeAnimInstance::NativeBeginPlay()
 {
 	Super::NativeBeginPlay();
 
-	APawn* Pawn = TryGetPawnOwner();
-	OwningHero = IsValid(Pawn) ? Cast<AHeroBase>(Pawn) : nullptr;
+	OwningHero = TryGetPawnOwner() ? Cast<AHeroBase>(TryGetPawnOwner()) : nullptr;
+	OwningACS = OwningHero && OwningHero->GetAbilitySystemComponent() ? OwningHero->GetHeroesAbilitySystemComponent() : nullptr;
 
-	if (IsValid(OwningHero))
+	if (IsValid(OwningHero) && OwningHero != nullptr)
 	{
 		OwningHero->LandedDelegate.AddDynamic(this, &UPrototypeAnimInstance::OnOwningPawnLanded);
 
-		OwningACS = OwningHero->GetHeroesAbilitySystemComponent();
+		OwningPS = OwningHero->GetPlayerState<AHeroesGamePlayerStateBase>();
+
+		OwningInventory = IsValid(OwningPS) ? OwningPS->GetInventoryComponent() : nullptr;
+
+		EquippedItem = IsValid(OwningInventory) ? OwningInventory->GetEquippedItem() : nullptr;
+
+		EquippedItemDefinition = IsValid(EquippedItem) ? const_cast<UInventoryItemDefinition*>(EquippedItem->GetItemDefinition()) : nullptr;
+
+		EquippedItemEquippableTrait = IsValid(EquippedItemDefinition) ? EquippedItemDefinition->FindTraitByClass<UEquippableItemTrait>() : nullptr;
 	}
 
 	CrouchingTag = FHeroesNativeGameplayTags::Get().State_Movement_Crouching;
@@ -38,31 +56,36 @@ void UPrototypeAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 {
 	Super::NativeUpdateAnimation(DeltaSeconds);
 
-	UpdateCameraPitch();
+	if (IsValid(OwningHero))
+	{
+		UpdateLookSpeed();
 
-	UpdateVelocity();
+		UpdateVelocity();
 
-	UpdateHandIK();
+		UpdateCameraPitch();
 
-	UpdateCamRotation();
+		UpdateHandIK();
 
-	UpdateLagLeanSway();
+		UpdateCamRotation();
 
-	UpdateIKRot();
+		UpdateLagLeanSway();
 
-	UpdateIKRot_ADS();
+		UpdateIKRot();
 
-	UpdateIKLoc();
+		UpdateIKRot_ADS();
 
-	UpdateIKLoc_ADS();
+		UpdateIKLoc();
 
-	UpdateFireJitter();
+		UpdateIKLoc_ADS();
 
-	UpdateFirePullback();
+		// UpdateFireJitter();
 
-	UpdateRapidFire();
+		// UpdateFirePullback();
 
-	UpdateTagStates();
+		// UpdateRapidFire();
+
+		UpdateTagStates();
+	}
 }
 
 void UPrototypeAnimInstance::UpdateFloatSpringInterp(float FInterpCurrent, float FInterpTarget, float SpringCurrent, FFloatSpringState& SpringState, UFloatSpringInterpDataAsset* SpringData, bool bUseDeltaScalar, float& OutCurrentFInterp, float& OutCurrentSpring)
@@ -91,16 +114,6 @@ void UPrototypeAnimInstance::UpdateFloatSpringInterp(float FInterpCurrent, float
 	OutCurrentFInterp = LocalCurrentFInterp;
 }
 
-void UPrototypeAnimInstance::UpdateCameraPitch()
-{
-	OwningHero->GetFirstPersonCameraComponent()->GetCameraView(GetDeltaSeconds(), PlayerCameraView);
-
-	const float PitchOrig = PlayerCameraView.Rotation.Pitch;
-	CameraPitch = PitchOrig > 90.0f ?
-		FMath::GetMappedRangeValueClamped(FVector2D(270.0f, 360.0f), FVector2D(-90.0f, 0.0f), PitchOrig) :
-		PitchOrig;
-}
-
 void UPrototypeAnimInstance::UpdateVelocity()
 {
 	if (!IsValid(OwningHero))
@@ -109,14 +122,49 @@ void UPrototypeAnimInstance::UpdateVelocity()
 	}
 
 	const FVector Velocity = OwningHero->GetVelocity();
-	const FRotator Rotation = OwningHero->GetActorRotation();
+	const FVector UnrotatedVelocity = OwningHero->GetActorRotation().UnrotateVector(Velocity);
 
-	Speed = Velocity.Length();
-	
-	const FVector UnrotatedVelocity = Rotation.UnrotateVector(Velocity);
+	SignedSpeed = Velocity.Length();
 
-	ForwardBackwardSpeed = UnrotatedVelocity.X;
-	RightLeftSpeed = UnrotatedVelocity.Y;
+	ForwardBackwardMovementSpeed = UnrotatedVelocity.X;
+	RightLeftMovementSpeed = UnrotatedVelocity.Y;
+	UpDownMovementSpeed = UnrotatedVelocity.Z;
+}
+
+void UPrototypeAnimInstance::UpdateLookSpeed()
+{
+	if (!IsValid(OwningHero))
+	{
+		return;
+	}
+
+	PawnRotation = OwningHero->GetActorRotation();
+
+	PreviousLookRotation = CurrentLookRotation;
+	CurrentLookRotation = OwningHero->GetFirstPersonCameraComponent()->GetComponentRotation();
+
+	const FVector CurrentLookAsVector = FVector(CurrentLookRotation.Roll, CurrentLookRotation.Pitch, CurrentLookRotation.Yaw);
+	const FVector PreviousLookAsVector = FVector(PreviousLookRotation.Roll, PreviousLookRotation.Pitch, PreviousLookRotation.Yaw);
+
+	const FVector RotationSinceLastUpdate = CurrentLookAsVector - PreviousLookAsVector;
+
+	const float DeltaSeconds = GetDeltaSeconds();
+	const float TimeSinceLastUpdate = DeltaSeconds > 0.0f ? DeltaSeconds : 1.0f;
+
+	const FVector RotationSpeed = RotationSinceLastUpdate * (1.0f / TimeSinceLastUpdate);
+
+	LookUpDownSpeed = FMath::Clamp(RotationSpeed.Y, -MaxLookSpeed, MaxLookSpeed);
+	LookRightLeftSpeed = FMath::Clamp(RotationSpeed.Z, -MaxLookSpeed, MaxLookSpeed);
+}
+
+void UPrototypeAnimInstance::UpdateCameraPitch()
+{
+	OwningHero->GetFirstPersonCameraComponent()->GetCameraView(GetDeltaSeconds(), PlayerCameraView);
+
+	const float PitchOrig = PlayerCameraView.Rotation.Pitch;
+	CameraPitch = PitchOrig > 90.0f ?
+		FMath::GetMappedRangeValueClamped(FVector2D(270.0f, 360.0f), FVector2D(-90.0f, 0.0f), PitchOrig) :
+		PitchOrig;
 }
 
 void UPrototypeAnimInstance::UpdateHandIK()
@@ -135,38 +183,141 @@ FTransform UPrototypeAnimInstance::CalculateHandADSOffset()
 		- Location
 			- Add 3 vectors
 			
-				- Vector 1
+				- J: Vector 1
 					- X: 0.0
 					- Y: Current weapon's ADS distance from camera (static data for each weapon that determines how far to put it from the camera)
 					- Z: 0.0
 					
-				- Vector 2 (might be optional - use if there are bugs): The camera's location relative to the character's head
+				- K: Vector 2 (might be optional - use if there are bugs): The camera's location relative to the character's head
 				
-				- Vector 3
-					- Vector 1 - Vector 2
+				- L: Vector 3
+					- I: Vector 1 - Vector 2
 					
-						- Vector 1:
-							- Vector 1 - Vector 2
+						- G: Vector 1:
+							- E: Vector 1 - Vector 2
 
-								- Vector 1
+								- A: Vector 1
 									- The location of the socket that the weapon is attached to, transformed to bone space
 										- Position and rotation are taken from the socket transform of the equipped weapon's root (in world space)
 
-								- Vector 2 (might be optional - use if there are bugs)
+								- B: Vector 2 (might be optional - use if there are bugs)
 									- The location of the equipped weapon's root (in component space)
 
-						- Vector 2:
-							- Rotated Vector
+						- H: Vector 2:
+							- F: Rotated Vector
 
-								- Vector: The location of the socket that the weapon is attached to, transformed to bone space using the location and rotation of the equipped weapon's sight mesh's crosshair socket (in world space)
+								- C: Vector: The location of the socket that the weapon is attached to, transformed to bone space using the location and rotation of the equipped weapon's sight mesh's crosshair socket (in world space)
 
-								- Rotator (might be optional - use if there are bugs): The rotation of the FPP mesh's head, or the player camera, transformed to bone space using the transform of the socket that the weapon is attached to (in world space)
-
+								- D: Rotator (might be optional - use if there are bugs): The rotation of the FPP mesh's head, or the player camera, transformed to bone space using the transform of the socket that the weapon is attached to (in world space)
 		- Rotation
 			- The rotation of the weapon's root, transformed to bone space using the transform of the crosshair socket of the equipped weapon's sights mesh (in world space), and inverted
 	*/
 
-	return FTransform();
+	if (!IsValid(EquippedItemEquippableTrait))
+	{
+		if (IsValid(OwningHero) && OwningHero != nullptr)
+		{
+			OwningHero->LandedDelegate.AddDynamic(this, &UPrototypeAnimInstance::OnOwningPawnLanded);
+
+			OwningPS = OwningHero->GetPlayerState<AHeroesGamePlayerStateBase>();
+
+			OwningInventory = IsValid(OwningPS) ? OwningPS->GetInventoryComponent() : nullptr;
+
+			EquippedItem = IsValid(OwningInventory) ? OwningInventory->GetEquippedItem() : nullptr;
+
+			EquippedItemDefinition = IsValid(EquippedItem) ? const_cast<UInventoryItemDefinition*>(EquippedItem->GetItemDefinition()) : nullptr;
+
+			EquippedItemEquippableTrait = IsValid(EquippedItemDefinition) ? EquippedItemDefinition->FindTraitByClass<UEquippableItemTrait>() : nullptr;
+		}
+
+		return FTransform();
+	}
+	
+	FName WeaponRootBone = "root";
+	FName AttachSocket = "ik_hand_gun";
+	USkeletalMeshComponent* CharacterMesh = GetSkelMeshComponent();
+	USkeletalMeshComponent* WeaponMesh = EquippedItemEquippableTrait->FirstPersonEquippedActor->FindComponentByClass<USkeletalMeshComponent>();
+
+	const FTransform AttachedSocketTransform = WeaponMesh->GetSocketTransform(WeaponRootBone, RTS_World);
+	FVector ALoc = FVector();
+	FRotator ARot = FRotator();
+	
+	GetSkelMeshComponent()->TransformToBoneSpace(
+		AttachSocket,
+		AttachedSocketTransform.GetLocation(),
+		AttachedSocketTransform.Rotator(),
+		ALoc,
+		ARot
+		);
+
+	const FTransform AttachedSocketTransformComponent = WeaponMesh->GetSocketTransform(WeaponRootBone, RTS_Component);
+	const FVector BLoc = AttachedSocketTransformComponent.GetLocation();
+
+	const FVector E = ALoc - BLoc;
+
+
+	TArray<UActorComponent*> SightComponents = EquippedItemEquippableTrait->FirstPersonEquippedActor->GetComponentsByTag(UMeshComponent::StaticClass(), FName("Sight"));
+
+	UMeshComponent* SightMesh = SightComponents.Num() > 0 ? Cast<UMeshComponent>(SightComponents[0]) : nullptr;
+
+	if (!IsValid(SightMesh))
+	{
+		return FTransform();
+	}
+
+	const FTransform SightTransform = SightMesh->GetSocketTransform(FName("Socket"), RTS_World);
+
+	FVector CLoc = FVector();
+	FRotator CRot = FRotator();
+	CharacterMesh->TransformToBoneSpace(
+		AttachSocket,
+		SightTransform.GetLocation(),
+		SightTransform.Rotator(),
+		CLoc,
+		CRot
+		);
+
+
+	const FTransform HandSocketTransform = CharacterMesh->GetSocketTransform(FName(AttachSocket, RTS_World));
+
+	FVector DLoc = FVector();
+	FRotator DRot = FRotator();
+	GetSkelMeshComponent()->TransformToBoneSpace(
+		AttachSocket,
+		HandSocketTransform.GetLocation(),
+		HandSocketTransform.Rotator(),
+		DLoc,
+		DRot
+		);
+
+	const FVector F = DRot.RotateVector(CLoc);
+
+
+	const FVector I = E - F;
+
+
+	const FVector J = FVector(0.0f, 30.0f, 0.0f);
+
+
+	const FVector FinalLocation = I + J;
+
+
+
+	FVector RotLoc = FVector();
+	FRotator RotRot = FRotator();
+	WeaponMesh->TransformToBoneSpace(
+		WeaponRootBone,
+		SightTransform.GetLocation(),
+		SightTransform.Rotator(),
+		RotLoc,
+		RotRot
+		);
+
+	FRotator FinalRotation = RotRot.GetInverse();
+
+
+
+	return FTransform(FinalRotation, FinalLocation, FVector(1.0f));
 }
 
 FTransform UPrototypeAnimInstance::CalculateHandCorrectionOffset()
@@ -207,26 +358,21 @@ void UPrototypeAnimInstance::UpdateCamRotation()
 
 void UPrototypeAnimInstance::UpdateLagLeanSway()
 {
-	if (!IsValid(OwningHero))
+	if (!IsValid(OwningHero) || !IsValid(ItemAnimationData))
 	{
 		return;
 	}
 	
 	NormalizedCameraPitch = FMath::GetMappedRangeValueClamped(FVector2D(-75.0f, 75.0f), FVector2D(1.0f, -1.0f), CameraPitch);
 
-	// Might need to unrotate this.
-	const FVector CurrentMovement = OwningHero->Internal_GetPendingMovementInputVector();
-
 	// Might need to change how this is retrieved in order to get the rotation change this frame.
 	const APlayerController* PC = OwningHero->GetController<APlayerController>();
 	const FRotator CurrentRotation = IsValid(PC) ? OwningHero->GetController<APlayerController>()->RotationInput : FRotator::ZeroRotator;
-	
-	MoveForwardBackward = CurrentMovement.X;
-	MoveRightLeft = CurrentMovement.Y;
-	LookUpDown = CurrentRotation.Pitch;
-	LookRightLeft = CurrentRotation.Yaw;
 
-	UE_LOG(LogHeroes, Warning, TEXT("Rotation: %s"), *CurrentRotation.ToString());
+	MoveForwardBackward = ForwardBackwardMovementSpeed;
+	MoveRightLeft = RightLeftMovementSpeed;
+	LookUpDown = CurrentLookRotation.Pitch;
+	LookRightLeft = CurrentLookRotation.Yaw;
 
 	// Hook in aim scaling rates here.
 	LookUpDownRate = 1.0f;
@@ -245,7 +391,7 @@ void UPrototypeAnimInstance::OnOwningPawnLanded(const FHitResult& Hit)
 
 void UPrototypeAnimInstance::UpdateFall(const FHitResult& Hit)
 {
-	if (IsValid(OwningHero) && OwningHero->GetHeroesCharacterMovementComponent())
+	if (IsValid(OwningHero) && OwningHero->GetHeroesCharacterMovementComponent() && IsValid(ItemAnimationData))
 	{
 		const UHeroesCharacterMovementComponent* MovementComponent = OwningHero->GetHeroesCharacterMovementComponent();
 
@@ -323,6 +469,11 @@ void UPrototypeAnimInstance::UpdateIKLoc_ADS()
 
 void UPrototypeAnimInstance::UpdateFireJitter()
 {
+	if (!IsValid(ItemAnimationData))
+	{
+		return;
+	}
+	
 	const float DeltaTime = GetDeltaSeconds();
 	
 	if (DeltaTime > 0.1f)
