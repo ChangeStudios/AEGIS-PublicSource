@@ -24,16 +24,16 @@ struct FSpringInterpData
 	GENERATED_BODY()
 
 	UPROPERTY(EditDefaultsOnly)
-	float FInterpSpeed;
+	float FInterpSpeed = 1.0f;
 
 	UPROPERTY(EditDefaultsOnly)
-	float Stiffness;
+	float Stiffness = 1.0f;
 
 	UPROPERTY(EditDefaultsOnly)
-	float CriticalDampingFactor;
+	float CriticalDampingFactor = 1.0f;
 
 	UPROPERTY(EditDefaultsOnly)
-	float Mass;
+	float Mass = 1.0f;
 };
 
 /**
@@ -203,18 +203,6 @@ public:
 	float WeaponSwayLocationOffsetInterpLookUp;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Player Movement|Lag, Lean, & Sway|Movement")
-	float MoveForwardBackward;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Player Movement|Lag, Lean, & Sway|Movement")
-	float MoveRightLeft;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Player Movement|Lag, Lean, & Sway|Movement")
-	float LookUpDown;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Player Movement|Lag, Lean, & Sway|Movement")
-	float LookRightLeft;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Player Movement|Lag, Lean, & Sway|Movement")
 	float LookUpDownRate;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Player Movement|Lag, Lean, & Sway|Movement")
@@ -298,19 +286,19 @@ public:
 	void UpdateIKRot();
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Player Movement|IK Rotation")
-	float LeanMoveForwardBackwardScale;
+	float LeanMoveForwardBackwardScale = -1.25;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Player Movement|IK Rotation")
-	float LeanMoveRightLeftScale;
+	float LeanMoveRightLeftScale = 3.0f;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Player Movement|IK Rotation")
-	float SwayLookUpDownScale;
+	float SwayLookUpDownScale = 0.6f;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Player Movement|IK Rotation")
-	float SwayLookRightLeftScale;
+	float SwayLookRightLeftScale = 0.3f;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Player Movement|IK Rotation")
-	float FinalHipRotationScale;
+	float FinalHipRotationScale = 1.0f;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Player Movement|IK Rotation")
 	FRotator HandIKRotation;
@@ -320,19 +308,19 @@ public:
 	void UpdateIKRot_ADS();
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Player Movement|IK Rotation (ADS)")
-	float ADSLeanMoveForwardBackwardScale;
+	float ADSLeanMoveForwardBackwardScale = -1.25f;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Player Movement|IK Rotation (ADS)")
-	float ADSLeanMoveRightLeftScale;
+	float ADSLeanMoveRightLeftScale = 1.5f;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Player Movement|IK Rotation (ADS)")
-	float ADSSwayLookUpDownScale;
+	float ADSSwayLookUpDownScale = 1.0f;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Player Movement|IK Rotation (ADS)")
-	float ADSSwayLookRightLeftScale;
+	float ADSSwayLookRightLeftScale = 0.4f;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Player Movement|IK Rotation (ADS)")
-	float ADSFinalRotationScale;
+	float ADSFinalRotationScale = 0.8f;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Player Movement|IK Rotation (ADS)")
 	FRotator ADSHandIKRotation;
@@ -342,22 +330,22 @@ public:
 	void UpdateIKLoc();
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Player Movement|IK Location")
-	float LagMoveForwardBackwardScale;
+	float LagMoveForwardBackwardScale = -1.25f;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Player Movement|IK Location")
-	float LagMoveRightLeftScale;
+	float LagMoveRightLeftScale = 1.4f;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Player Movement|IK Location")
-	float LagLookUpDownScale;
+	float LagLookUpDownScale = 0.6f;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Player Movement|IK Location")
-	float LagLookRightLeftScale;
+	float LagLookRightLeftScale = 0.11f;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Player Movement|IK Location")
-	float WeaponSwayLocationOffsetLookUpScale;
+	float WeaponSwayLocationOffsetLookUpScale = 3.0f;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Player Movement|IK Location")
-	float FinalHipLocationScale;
+	float FinalHipLocationScale = 1.0f;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Player Movement|IK Location")
 	FVector HandIKLocation;
@@ -367,19 +355,19 @@ public:
 	void UpdateIKLoc_ADS();
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Player Movement|IK Location (ADS)")
-	float ADSLagMoveForwardBackwardScale;
+	float ADSLagMoveForwardBackwardScale = -1.25f;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Player Movement|IK Location (ADS)")
-	float ADSLagMoveRightLeftScale;
+	float ADSLagMoveRightLeftScale = 0.7f;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Player Movement|IK Location (ADS)")
-	float ADSLagLookUpDownScale;
+	float ADSLagLookUpDownScale = 1.0f;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Player Movement|IK Location (ADS)")
-	float ADSLagLookRightLeftScale;
+	float ADSLagLookRightLeftScale = 0.1f;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Player Movement|IK Location (ADS)")
-	float ADSFinalLocationScale;
+	float ADSFinalLocationScale = 0.3f;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Player Movement|IK Location (ADS)")
 	FVector ADSHandIKLocation;

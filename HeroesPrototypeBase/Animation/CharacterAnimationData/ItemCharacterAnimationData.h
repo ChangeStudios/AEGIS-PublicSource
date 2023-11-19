@@ -43,6 +43,10 @@ public:
 	FAdditiveAnimationMultipliers AdditiveAnimationMultipliers;
 
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "First-Person|Item|IK")
+	FTransform RightHandPoseCorrectionOffset;
+
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "First-Person|Item|Falling")
 	float MinFallDistance = 400.0f;
 

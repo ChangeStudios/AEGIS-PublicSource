@@ -35,7 +35,7 @@ void UPrototypeAnimInstance::NativeBeginPlay()
 
 	if (IsValid(OwningHero) && OwningHero != nullptr)
 	{
-		OwningHero->LandedDelegate.AddDynamic(this, &UPrototypeAnimInstance::OnOwningPawnLanded);
+		// OwningHero->LandedDelegate.AddDynamic(this, &UPrototypeAnimInstance::OnOwningPawnLanded);
 
 		OwningPS = OwningHero->GetPlayerState<AHeroesGamePlayerStateBase>();
 
@@ -110,7 +110,15 @@ void UPrototypeAnimInstance::UpdateFloatSpringInterp(float FInterpCurrent, float
 	const float LocalScaledSpringTarget = bUseDeltaScalar ? FInterpTarget * FMath::Pow(LocalDeltaScalar, 0.75f) : FInterpTarget;
 	const float LocalScaledDeltaTime = DeltaSeconds / FMath::Pow(LocalDeltaScalar, -0.1f);
 
-	OutCurrentSpring = UKismetMathLibrary::FloatSpringInterp(SpringCurrent, LocalScaledSpringTarget, SpringState, LocalStiffness, LocalDampingFactor, LocalScaledDeltaTime, LocalMass);
+	OutCurrentSpring = UKismetMathLibrary::FloatSpringInterp(
+		SpringCurrent,
+		LocalScaledSpringTarget,
+		SpringState,
+		LocalStiffness,
+		LocalDampingFactor,
+		LocalScaledDeltaTime,
+		LocalMass
+		);
 	OutCurrentFInterp = LocalCurrentFInterp;
 }
 
@@ -215,14 +223,8 @@ FTransform UPrototypeAnimInstance::CalculateHandADSOffset()
 
 	if (!IsValid(EquippedItemEquippableTrait))
 	{
-		if (IsValid(OwningHero) && OwningHero != nullptr)
+		if (IsValid(OwningHero))
 		{
-			OwningHero->LandedDelegate.AddDynamic(this, &UPrototypeAnimInstance::OnOwningPawnLanded);
-
-			OwningPS = OwningHero->GetPlayerState<AHeroesGamePlayerStateBase>();
-
-			OwningInventory = IsValid(OwningPS) ? OwningPS->GetInventoryComponent() : nullptr;
-
 			EquippedItem = IsValid(OwningInventory) ? OwningInventory->GetEquippedItem() : nullptr;
 
 			EquippedItemDefinition = IsValid(EquippedItem) ? const_cast<UInventoryItemDefinition*>(EquippedItem->GetItemDefinition()) : nullptr;
@@ -346,7 +348,44 @@ FTransform UPrototypeAnimInstance::CalculateHandCorrectionOffset()
 
 	 */
 
-	return FTransform();
+	if (!IsValid(EquippedItemEquippableTrait) || !IsValid(EquippedItemEquippableTrait))
+	{
+		if (IsValid(OwningHero))
+		{
+			EquippedItem = IsValid(OwningInventory) ? OwningInventory->GetEquippedItem() : nullptr;
+
+			EquippedItemDefinition = IsValid(EquippedItem) ? const_cast<UInventoryItemDefinition*>(EquippedItem->GetItemDefinition()) : nullptr;
+
+			EquippedItemEquippableTrait = IsValid(EquippedItemDefinition) ? EquippedItemDefinition->FindTraitByClass<UEquippableItemTrait>() : nullptr;
+		}
+
+		return FTransform();
+	}
+
+	const FTransform RelativeView = OwningHero->GetFirstPersonCameraComponent()->GetRelativeTransform();
+	const FVector Loc1 = RelativeView.Rotator().GetInverse().RotateVector(RelativeView.GetLocation());
+	const FVector Loc2 = ItemAnimationData->RightHandPoseCorrectionOffset.GetLocation();
+	const FVector FinalLoc = Loc1 + Loc2;
+
+	const FName WeaponRootBone = "root";
+	const FName AttachSocket = "ik_hand_gun";
+	const USkeletalMeshComponent* CharacterMesh = GetSkelMeshComponent();
+	const USkeletalMeshComponent* WeaponMesh = EquippedItemEquippableTrait->FirstPersonEquippedActor->FindComponentByClass<USkeletalMeshComponent>();
+
+	// Might have to be bone transform, not socket
+	const FTransform SocketTransform = CharacterMesh->GetSocketTransform(AttachSocket, RTS_World);
+	FVector OutLoc;
+	FRotator OutRot;
+
+	CharacterMesh->TransformToBoneSpace(
+		AttachSocket,
+		SocketTransform.GetLocation(),
+		SocketTransform.Rotator(),
+		OutLoc,
+		OutRot
+		);
+	
+	return FTransform(FRotator(0.0f), FinalLoc, FVector(OutRot.Roll, OutRot.Pitch, OutRot.Yaw));
 }
 
 void UPrototypeAnimInstance::UpdateCamRotation()
@@ -365,23 +404,26 @@ void UPrototypeAnimInstance::UpdateLagLeanSway()
 	
 	NormalizedCameraPitch = FMath::GetMappedRangeValueClamped(FVector2D(-75.0f, 75.0f), FVector2D(1.0f, -1.0f), CameraPitch);
 
-	// Might need to change how this is retrieved in order to get the rotation change this frame.
-	const APlayerController* PC = OwningHero->GetController<APlayerController>();
-	const FRotator CurrentRotation = IsValid(PC) ? OwningHero->GetController<APlayerController>()->RotationInput : FRotator::ZeroRotator;
+	const FRotator DeltaRotation = CurrentLookRotation - PreviousLookRotation; 
 
-	MoveForwardBackward = ForwardBackwardMovementSpeed;
-	MoveRightLeft = RightLeftMovementSpeed;
-	LookUpDown = CurrentLookRotation.Pitch;
-	LookRightLeft = CurrentLookRotation.Yaw;
+	const float MoveForwardBackwardOrig = ForwardBackwardMovementSpeed;
+	const float MoveRightLeftOrig = RightLeftMovementSpeed;
+	const float MoveForwardBackwardNormalized = MoveForwardBackwardOrig;
+	const float MoveRightLeftNormalized = MoveRightLeftOrig;
+
+	const float LookUpDownOrig = DeltaRotation.Pitch;
+	const float LookRightLeftOrig = DeltaRotation.Yaw;
+	const float LookUpDownNormalized = LookUpDownOrig;
+	const float LookRightLeftNormalized = LookRightLeftOrig;
 
 	// Hook in aim scaling rates here.
 	LookUpDownRate = 1.0f;
 	LookRightLeftRate = 1.0f;
 
-	UpdateFloatSpringInterp(CurrentFInterpLookRightLeft, (LookRightLeft + LookRightLeftRate), CurrentSpringLookRightLeft, LookRightLeftSpringState, ItemAnimationData->SpringInterpDataAimRightLeft, true, CurrentFInterpLookRightLeft, CurrentSpringLookRightLeft);
-	UpdateFloatSpringInterp(CurrentFInterpLookUpDown, (LookUpDown + LookUpDownRate), CurrentSpringLookUpDown, LookUpDownSpringState, ItemAnimationData->SpringInterpDataAimUpDown, true, CurrentFInterpLookUpDown, CurrentSpringLookUpDown);
-	UpdateFloatSpringInterp(CurrentFInterpMoveForwardBackward, MoveForwardBackward, CurrentSpringMoveForwardBackward, MoveForwardBackwardSpringState, ItemAnimationData->SpringInterpDataMoveForwardBackward, false, CurrentFInterpMoveForwardBackward, CurrentSpringMoveForwardBackward);
-	UpdateFloatSpringInterp(CurrentFInterpMoveRightLeft, MoveRightLeft, CurrentSpringMoveRightLeft, MoveRightLeftSpringState, ItemAnimationData->SpringInterpDataMoveRightLeft, false, CurrentFInterpMoveRightLeft, CurrentSpringMoveRightLeft);
+	UpdateFloatSpringInterp(CurrentFInterpLookRightLeft, (LookRightLeftNormalized + LookRightLeftRate), CurrentSpringLookRightLeft, LookRightLeftSpringState, ItemAnimationData->SpringInterpDataAimRightLeft, true, CurrentFInterpLookRightLeft, CurrentSpringLookRightLeft);
+	UpdateFloatSpringInterp(CurrentFInterpLookUpDown, (LookUpDownNormalized + LookUpDownRate), CurrentSpringLookUpDown, LookUpDownSpringState, ItemAnimationData->SpringInterpDataAimUpDown, true, CurrentFInterpLookUpDown, CurrentSpringLookUpDown);
+	UpdateFloatSpringInterp(CurrentFInterpMoveForwardBackward, MoveForwardBackwardNormalized, CurrentSpringMoveForwardBackward, MoveForwardBackwardSpringState, ItemAnimationData->SpringInterpDataMoveForwardBackward, false, CurrentFInterpMoveForwardBackward, CurrentSpringMoveForwardBackward);
+	UpdateFloatSpringInterp(CurrentFInterpMoveRightLeft, MoveRightLeftNormalized, CurrentSpringMoveRightLeft, MoveRightLeftSpringState, ItemAnimationData->SpringInterpDataMoveRightLeft, false, CurrentFInterpMoveRightLeft, CurrentSpringMoveRightLeft);
 }
 
 void UPrototypeAnimInstance::OnOwningPawnLanded(const FHitResult& Hit)
@@ -429,7 +471,7 @@ void UPrototypeAnimInstance::UpdateIKRot_ADS()
 	const FRotator SwayAndFireRot = AddRotators(SwayRot, CurrentFireJitterRotation);
 	const FRotator FinalIKRot = SwayAndFireRot * ADSFinalRotationScale;
 
-	ADSHandIKRotation = AddRotators(FinalIKRot, HandIKCorrection.Rotator());
+	ADSHandIKRotation = AddRotators(FinalIKRot, HandADSIK.Rotator());
 }
 
 void UPrototypeAnimInstance::UpdateIKLoc()
