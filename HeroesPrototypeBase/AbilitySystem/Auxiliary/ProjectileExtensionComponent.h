@@ -23,7 +23,8 @@ enum class EProjectileMovementStyle : uint8
 };
 
 /**
- * 
+ * TODO: Add an option to exclusively activate projectiles on the ground (as opposed to walls or other actors). This
+ * might require explicitly marking surfaces that count as "ground" on each map to ensure consistency.
  */
 UENUM(BlueprintType)
 enum class EProjectileActivationStyle : uint8
