@@ -5,7 +5,7 @@
 
 #include "AbilitySystem/HeroesAbilitySystemGlobals.h"
 #include "AbilitySystem/Components/HeroesAbilitySystemComponent.h"
-#include "Animation/AnimInstances/Characters/HeroFirstPersonAnimInstance.h"
+#include "Animation/AnimInstances/Characters/PrototypeAnimInstanceV3.h"
 #include "Animation/CharacterAnimationData/ItemCharacterAnimationData.h"
 #include "Characters/Components/FirstPersonSkeletalMeshComponent.h"
 #include "Characters/Heroes/HeroBase.h"
@@ -45,9 +45,8 @@ void UEquippableItemTrait::OnEquipped(UInventoryItemInstance* ItemToEquip)
 		}
 	}
 
-
-	// Update the equipping character's animation data to use the new item's animation data and play its "equip" animation.
-	if (UHeroFirstPersonAnimInstance* FPPAnimInstance = Cast<UHeroFirstPersonAnimInstance>(EquippingHero->GetFirstPersonMesh()->GetAnimInstance()))
+	// TODO: Replace this when creating the final class.
+	if (UPrototypeAnimInstanceV3* FPPAnimInstance = Cast<UPrototypeAnimInstanceV3>(EquippingHero->GetFirstPersonMesh()->GetAnimInstance()))
 	{
 		FPPAnimInstance->UpdateCharacterAnimationData(CharacterAnimationData);
 

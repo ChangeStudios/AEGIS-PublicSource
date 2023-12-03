@@ -10,6 +10,7 @@
 #include "InventoryItemInstance.h"
 #include "InventoryItemPickupActor.h"
 #include "Animation/AnimInstances/Characters/HeroFirstPersonAnimInstance.h"
+#include "Animation/AnimInstances/Characters/PrototypeAnimInstanceV3.h"
 #include "Camera/CameraComponent.h"
 #include "Characters/Components/FirstPersonSkeletalMeshComponent.h"
 #include "Characters/Heroes/HeroBase.h"
@@ -276,9 +277,10 @@ void UInventoryComponent::RemoveItem_Internal(UInventoryItemInstance* ItemToRemo
 				const APlayerState* PS = GetOwner<APlayerState>();
 				const AHeroBase* Hero = PS->GetPawn<AHeroBase>();
 
-				if (UHeroFirstPersonAnimInstance* FPPAnimInstance = Cast<UHeroFirstPersonAnimInstance>(Hero->GetFirstPersonMesh()->GetAnimInstance()))
+				// TODO: Replace this when creating the final class.
+				if (UPrototypeAnimInstanceV3* FPPAnimInstance = Cast<UPrototypeAnimInstanceV3>(Hero->GetFirstPersonMesh()->GetAnimInstance()))
 				{
-					FPPAnimInstance->UpdateCharacterAnimationData(FPPAnimInstance->DefaultAnimationData);
+					FPPAnimInstance->UpdateCharacterAnimationData(FPPAnimInstance->DefaultCharacterAnimationData);
 				}
 			}
 		}

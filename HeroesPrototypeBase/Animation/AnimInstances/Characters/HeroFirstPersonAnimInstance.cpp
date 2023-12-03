@@ -50,7 +50,7 @@ void UHeroFirstPersonAnimInstance::NativeThreadSafeUpdateAnimation(float DeltaSe
 	Super::NativeThreadSafeUpdateAnimation(DeltaSeconds);
 
 	// Update the current state of ADS.
-	bAimingDownSights = OwningACS ? OwningACS->HasMatchingGameplayTag(FHeroesNativeGameplayTags::Get().State_AimedDownSights) : false;
+	bAimingDownSights = OwningACS ? OwningACS->HasMatchingGameplayTag(FHeroesNativeGameplayTags::Get().State_Aiming) : false;
 
 	UpdateAimOffset();
 

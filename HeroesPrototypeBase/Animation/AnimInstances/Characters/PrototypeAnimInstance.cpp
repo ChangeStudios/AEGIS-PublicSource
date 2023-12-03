@@ -49,7 +49,7 @@ void UPrototypeAnimInstance::NativeBeginPlay()
 	}
 
 	CrouchingTag = FHeroesNativeGameplayTags::Get().State_Movement_Crouching;
-	AimingTag = FHeroesNativeGameplayTags::Get().State_AimedDownSights;
+	AimingTag = FHeroesNativeGameplayTags::Get().State_Aiming;
 }
 
 void UPrototypeAnimInstance::NativeUpdateAnimation(float DeltaSeconds)

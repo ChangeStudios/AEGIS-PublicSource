@@ -6,6 +6,8 @@
 #include "Engine/DataAsset.h"
 #include "CharacterAnimationData.generated.h"
 
+class UBlendSpace1D;
+
 /**
  * Collection of animation data used by character animation systems to dynamically change animation sets during
  * runtime. This is the base class for animation data, which is extended for more specific implementations (e.g. items,

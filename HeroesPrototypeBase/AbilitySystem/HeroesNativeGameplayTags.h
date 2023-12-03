@@ -70,7 +70,7 @@ public:
 	// State tags.
 	FGameplayTag State_Movement_Airborne;
 	FGameplayTag State_Movement_Crouching;
-	FGameplayTag State_AimedDownSights;
+	FGameplayTag State_Aiming;
 	
 
 };

@@ -58,7 +58,7 @@ void FHeroesNativeGameplayTags::AddAllTags(UGameplayTagsManager& Manager)
 
 	AddTag(Manager, State_Movement_Airborne, "State.Movement.Airborne", "Tags that describe why a character is airborne when they are in the air.");
 	AddTag(Manager, State_Movement_Crouching, "State.Movement.Crouching", "The character is currently crouching. This is also given to characters who queue the “crouch” action, allowing them to crouch when possible.");
-	AddTag(Manager, State_AimedDownSights, "State.AimedDownSights", "The target is currently aiming down the sights of their equipped weapon.");
+	AddTag(Manager, State_Aiming, "State.AimedDownSights", "The target is currently aiming down the sights of their equipped weapon.");
 }
 
 void FHeroesNativeGameplayTags::AddTag(UGameplayTagsManager& Manager, FGameplayTag& OutTag, const ANSICHAR* TagName, const ANSICHAR* TagDescription)
