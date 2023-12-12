@@ -51,13 +51,8 @@ void UPrototypeAnimInstanceV3::NativeBeginPlay()
 	// Bind state variables to be updated when their corresponding gameplay tags are added or removed.
 	if (IsValid(OwningACS))
 	{
-		OwningACS->RegisterGameplayTagEvent(FHeroesNativeGameplayTags::Get().State_Movement_Crouching, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &UPrototypeAnimInstanceV3::OnCrouchedStateChanged);
-		OwningACS->RegisterGameplayTagEvent(FHeroesNativeGameplayTags::Get().State_Aiming, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &UPrototypeAnimInstanceV3::OnAimingStateChanged);
-		UE_LOG(LogTemp, Error, TEXT("A"));
-	}
-	else
-	{
-		UE_LOG(LogTemp, Error, TEXT("B"));
+		CrouchStateChangedDelegate = OwningACS->RegisterGameplayTagEvent(FHeroesNativeGameplayTags::Get().State_Movement_Crouching, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &UPrototypeAnimInstanceV3::OnCrouchedStateChanged);
+		AimingStateChangedDelegate = OwningACS->RegisterGameplayTagEvent(FHeroesNativeGameplayTags::Get().State_Aiming, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &UPrototypeAnimInstanceV3::OnAimingStateChanged);
 	}
 
 	// Initialize the character animation data.

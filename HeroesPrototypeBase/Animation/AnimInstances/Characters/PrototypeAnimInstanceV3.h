@@ -101,9 +101,11 @@ protected:
 
 	UFUNCTION()
 	FORCEINLINE void OnCrouchedStateChanged(const FGameplayTag Callback, int32 NewCount) { bIsCrouched = NewCount > 0; }
+	FDelegateHandle CrouchStateChangedDelegate;
 
 	UFUNCTION()
 	FORCEINLINE void OnAimingStateChanged(const FGameplayTag Callback, int32 NewCount) { bIsAiming = NewCount > 0; }
+	FDelegateHandle AimingStateChangedDelegate;
 
 
 
@@ -113,9 +115,9 @@ public:
 
 	/** This animation instance's owning pawn, cached for convenience. */
 	UPROPERTY(BlueprintReadOnly, Category = "Heroes|Animation")
-	TObjectPtr<AHeroBase> OwningHero;
+	AHeroBase* OwningHero = nullptr;
 
 	/** This animation instance's owning hero's ACS, if they have one. */
 	UPROPERTY(BlueprintReadOnly, Category = "Heroes|Animation")
-	TObjectPtr<UAbilitySystemComponent> OwningACS;
+	UAbilitySystemComponent* OwningACS = nullptr;
 };
