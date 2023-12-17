@@ -39,7 +39,7 @@ UInventoryComponent::UInventoryComponent()
 	bWantsInitializeComponent = true;
 	SetIsReplicatedByDefault(true);
 }
-
+	
 void UInventoryComponent::InitializeComponent()
 {
 	Super::InitializeComponent();
@@ -48,12 +48,9 @@ void UInventoryComponent::InitializeComponent()
 	SlottedItems = TArray<UInventoryItemInstance*>();
 	SlottedItems.SetNum(TotalSlots);
 
-	UE_LOG(LogInventory, Warning, TEXT("1"));
-
 	// Bind a delegate to when the TemporarilyUnarmed state if given to or removed from this component's owner's ASC.
 	if (UAbilitySystemComponent* ASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(GetOwner()))
 	{
-		UE_LOG(LogInventory, Warning, TEXT("2"));
 		TempUnarmedTagDelegate = ASC->RegisterGameplayTagEvent(TAG_State_TemporarilyUnarmed, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &UInventoryComponent::OnTempUnarmedStateChanged);
 	}
 }
