@@ -7,6 +7,9 @@
 #include "Animation/AnimInstance.h"
 #include "PrototypeAnimInstanceV3.generated.h"
 
+class UInventoryComponent;
+class AHeroesGamePlayerStateBase;
+class UInventoryItemInstance;
 class AHeroBase;
 class UAbilitySystemComponent;
 class UCharacterAnimationData;
@@ -61,24 +64,33 @@ public:
 
 	/** Updates the animation data set currently being used by this character. This is called to switch between
 	 * different animation sets, such as when changing items or weapons. */
-	UFUNCTION(BlueprintCallable, Category = "Heroes|Animation")
+	UFUNCTION(BlueprintCallable, Category = "Heroes|Animation|Animation Data")
 	void UpdateCharacterAnimationData(UCharacterAnimationData* NewAnimData);
 
 	/** The animation set to return to when there is no character animation set to use. This should ideally never be
 	 * used because the player should never have a completely empty inventory. */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Animation Data")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Heroes|Animation|Animation Data")
 	TObjectPtr<UCharacterAnimationData> DefaultCharacterAnimationData = nullptr;
 
 protected:
 
 	/** The current animation set being used by this character. */
-	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Animation Data")
+	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Heroes|Animation|Animation Data")
 	TObjectPtr<UCharacterAnimationData> CharacterAnimationData;
 
 	/** The type of animation set being used. Updated with CharacterAnimationData; used as a faster way to query
 	 * CharacterAnimationData's class. */
-	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Animation Data")
+	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Heroes|Animation|Animation Data")
 	TEnumAsByte<EAnimationDataType> AnimDataType;
+
+
+
+	// Item animation.
+
+protected:
+
+	UPROPERTY(EditInstanceOnly, BlueprintReadOnly, Category="Heroes|Animation|Item Animation")
+	TObjectPtr<UInventoryItemInstance> EquippedItem = nullptr;
 
 
 
@@ -88,11 +100,11 @@ protected:
 
 	/** Determines whether this character is currently crouched or standing. Updated with the State_Movement_Crouching
 	 * gameplay tag. */
-	UPROPERTY(BlueprintReadOnly, Category = "State Variables")
+	UPROPERTY(BlueprintReadOnly, Category = "Heroes|Animation|State Variables")
 	bool bIsCrouched = false;
 
 	/** Determines whether this character is aiming. Updated with the State_Aiming gameplay tag. */
-	UPROPERTY(BlueprintReadOnly, Category = "State Variables")
+	UPROPERTY(BlueprintReadOnly, Category = "Heroes|Animation|State Variables")
 	bool bIsAiming = false;
 
 /* Callbacks for when this character's animation states change. Called when their corresponding gameplay tags are added
@@ -114,10 +126,18 @@ protected:
 public:
 
 	/** This animation instance's owning pawn, cached for convenience. */
-	UPROPERTY(BlueprintReadOnly, Category = "Heroes|Animation")
-	AHeroBase* OwningHero = nullptr;
+	UPROPERTY(BlueprintReadOnly, Category = "Heroes|Animation|Utilities")
+	TObjectPtr<AHeroBase> OwningHero = nullptr;
 
-	/** This animation instance's owning hero's ACS, if they have one. */
-	UPROPERTY(BlueprintReadOnly, Category = "Heroes|Animation")
-	UAbilitySystemComponent* OwningACS = nullptr;
+	/** This animation instance's owning character's player state. */
+	UPROPERTY(BlueprintReadOnly, Category = "Heroes|Animation|Utilities")
+	TObjectPtr<AHeroesGamePlayerStateBase> OwningPS = nullptr;
+
+	/** This animation instance's owning character's ACS, if they have one. */
+	UPROPERTY(BlueprintReadOnly, Category = "Heroes|Animation|Utilities")
+	TObjectPtr<UAbilitySystemComponent> OwningACS = nullptr;
+
+	/** This animation instance's owning character's inventory, if they have one. */
+	UPROPERTY(BlueprintReadOnly, Category = "Heroes|Animation|Utilities")
+	TObjectPtr<UInventoryComponent> PlayerInventory;
 };

@@ -9,6 +9,7 @@
 #include "Animation/CharacterAnimationData/WeaponCharacterAnimationData.h"
 #include "Characters/Heroes/HeroBase.h"
 #include "Net/UnrealNetwork.h"
+#include "Player/PlayerStates/Game/HeroesGamePlayerStateBase.h"
 
 UPrototypeAnimInstanceV3::UPrototypeAnimInstanceV3(const FObjectInitializer& ObjectInitializer)
 {
@@ -46,7 +47,9 @@ void UPrototypeAnimInstanceV3::NativeBeginPlay()
 
 	// Cache important variables.
 	OwningHero = TryGetPawnOwner() ? Cast<AHeroBase>(TryGetPawnOwner()) : nullptr;
+	OwningPS = OwningHero && OwningHero->GetPlayerState() ? Cast<AHeroesGamePlayerStateBase>(OwningHero->GetPlayerState()) : nullptr;
 	OwningACS = OwningHero && OwningHero->GetAbilitySystemComponent() ? OwningHero->GetAbilitySystemComponent() : nullptr;
+	PlayerInventory = OwningPS && OwningPS->GetInventoryComponent() ? OwningPS->GetInventoryComponent() : nullptr;
 
 	// Bind state variables to be updated when their corresponding gameplay tags are added or removed.
 	if (IsValid(OwningACS))
