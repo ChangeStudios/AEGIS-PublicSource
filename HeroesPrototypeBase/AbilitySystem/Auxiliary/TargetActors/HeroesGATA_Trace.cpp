@@ -1,4 +1,4 @@
-// Copyright Samuel Reitich 2023.
+// Copyright Samuel Reitich 2024.
 
 
 #include "AbilitySystem/Auxiliary/TargetActors/HeroesGATA_Trace.h"
