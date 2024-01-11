@@ -31,7 +31,8 @@ enum class EInventoryActionResult : uint8
 };
 
 /**
- * 
+ * Provides an actor with an "inventory," containing items that they can access through this component. This component
+ * acts as an interface to the inventory system, providing various utility functions
  */
 UCLASS(BlueprintType)
 class HEROESPROTOTYPEBASE_API UInventoryComponent : public UActorComponent
